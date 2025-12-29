@@ -147,9 +147,20 @@ async def shutdown_event():
 
 
 # Define middleware (optional, example for CORS)
+# CORS settings from environment - default to restrictive for security
+cors_origins_env = os.environ.get("CORS_ALLOWED_ORIGINS", "")
+cors_origins = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()]
+# If no origins specified, allow all only in debug mode (development)
+if not cors_origins and os.environ.get("DEBUG", "False").lower() == "true":
+    cors_origins = ["*"]
+
 middleware = [
     Middleware(
-        CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
+        CORSMiddleware,
+        allow_origins=cors_origins,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["*"],
+        allow_credentials=True if "*" not in cors_origins else False,
     )
 ]
 

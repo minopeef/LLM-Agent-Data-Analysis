@@ -29,10 +29,13 @@ sys.path.insert(0, str(BASE_DIR / "apps"))
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-i7l&cnk2eemm1e!13kew37c=ctkpa2!0ufw)v&9vlwzqolq(y="
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
+    "django-insecure-i7l&cnk2eemm1e!13kew37c=ctkpa2!0ufw)v&9vlwzqolq(y=",  # Fallback for dev only
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
 ALLOWED_HOSTS = [
     ".ngrok-free.app",
