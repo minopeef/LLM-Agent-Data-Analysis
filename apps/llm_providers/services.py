@@ -92,16 +92,37 @@ class EmbeddingService:
             return None
 
     def get_embeddings(self, texts: List[str]) -> List[Optional[List[float]]]:
-        """Generates embeddings for a list of texts."""
+        """Generates embeddings for a list of texts using batch processing when available."""
         if not self.client:
             logger.warning("Embedding client not available.")
             return [None] * len(texts)
 
-        # Consider using embed_documents for efficiency if supported and useful
-        results = []
-        for text in texts:
-            results.append(self.get_embedding(text))
-        return results
+        if not texts:
+            return []
+
+        # Use batch embedding if available (more efficient than sequential calls)
+        try:
+            # Most LangChain embedding clients support embed_documents for batch processing
+            if hasattr(self.client, "embed_documents"):
+                embeddings = self.client.embed_documents(texts)
+                return embeddings
+            else:
+                # Fallback to sequential processing if batch not available
+                logger.debug("Batch embedding not available, using sequential processing")
+                results = []
+                for text in texts:
+                    results.append(self.get_embedding(text))
+                return results
+        except Exception as e:
+            logger.error(
+                f"Error generating batch embeddings: {e}, falling back to sequential",
+                exc_info=True,
+            )
+            # Fallback to sequential on error
+            results = []
+            for text in texts:
+                results.append(self.get_embedding(text))
+            return results
 
 
 class ChatService:
